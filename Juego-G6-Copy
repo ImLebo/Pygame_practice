@@ -1,0 +1,233 @@
+import pygame, sys, math, random
+
+
+# Inicialización de Pygame
+pygame.init()
+
+# Dimensiones de la ventana
+width = 800
+height = 600
+
+# Variables que vamos a utilizar en el juego
+contador = 0
+clock = pygame.time.Clock()
+FPS = 30
+
+#Caminar indices animacion 
+indiced = 0
+indicei = 0
+indicej = 0
+
+#Indice para animaciones del enemigo 
+indicem = 0
+
+#Relacion al personaje
+px = 400
+py = 300
+angulo = 0.0
+size = (128,128)
+vida = 3
+
+#Relacionado a enemigo
+pxe = random.randint(0,100) 
+pye = 380
+esize = (52,50)
+
+#GameOver
+gameover = pygame.image.load("gameover.jpg")
+
+#
+
+# Creación de la ventana
+screen = pygame.display.set_mode((width, height))
+pygame.display.set_caption("The Magic Tensei") #Nombre de la ventana
+
+# Importar un fondo
+background = pygame.image.load("fondo.jpg")
+
+# Personaje
+personaje = pygame.image.load("Personaje\IDLE\quieto.png")
+
+personaje_caminar_derecha = [pygame.image.load("Personaje\WALK\walk_right\ile000.png"),
+        pygame.image.load("Personaje\WALK\walk_right\ile001.png"),
+        pygame.image.load("Personaje\WALK\walk_right\ile002.png"),
+        pygame.image.load("Personaje\WALK\walk_right\ile003.png"),
+        pygame.image.load("Personaje\WALK\walk_right\ile004.png"),
+        pygame.image.load("Personaje\WALK\walk_right\ile005.png"),
+        pygame.image.load("Personaje\WALK\walk_right\ile006.png"),
+        pygame.image.load("Personaje\WALK\walk_right\ile007.png"),]
+
+personaje_caminar_izquierda = [pygame.image.load("Personaje\WALK\walk_left\ile000.png"),
+        pygame.image.load("Personaje\WALK\walk_left\ile001.png"),
+        pygame.image.load("Personaje\WALK\walk_left\ile002.png"),
+        pygame.image.load("Personaje\WALK\walk_left\ile003.png"),
+        pygame.image.load("Personaje\WALK\walk_left\ile004.png"),
+        pygame.image.load("Personaje\WALK\walk_left\ile005.png"),
+        pygame.image.load("Personaje\WALK\walk_left\ile006.png"),
+        pygame.image.load("Personaje\WALK\walk_left\ile007.png"),]
+
+jump = [pygame.image.load("Personaje\JUMP\ile000.png"),
+        pygame.image.load("Personaje\JUMP\ile001.png"),
+        pygame.image.load("Personaje\JUMP\ile002.png"),
+        pygame.image.load("Personaje\JUMP\ile003.png"),
+        pygame.image.load("Personaje\JUMP\ile004.png"),
+        pygame.image.load("Personaje\JUMP\ile005.png"),
+        pygame.image.load("Personaje\JUMP\ile006.png"),
+        pygame.image.load("Personaje\JUMP\ile007.png"),
+        pygame.image.load("Personaje\JUMP\ile008.png"),
+        pygame.image.load("Personaje\JUMP\ile008.png"),]
+
+# Enemigo 
+
+enemigo = pygame.image.load("Enemigo\enemigo.png")
+
+enemigoa = [pygame.image.load("Enemigo\enemigo1.png"),
+           pygame.image.load("Enemigo\enemigo2.png"),
+           pygame.image.load("Enemigo\enemigo3.png"),
+           pygame.image.load("Enemigo\enemigo4.png"),
+           pygame.image.load("Enemigo\enemigo5.png"),]
+
+#Obtener cuadrados para utilizar las colisiones
+rect_personaje = personaje.get_rect()
+rect_personaje = rect_personaje.inflate(-2/3,0)
+rect_enemigo = enemigo.get_rect()
+
+
+#Funciones para el movimiento
+quieto = True
+derecha = False
+izquierda = False
+# Auxmov lo vamos a utilizar para saber a donde esta mirando nuestro personaje
+auxmov = 0
+
+#Movimiento del personaje
+#Caminar a la derecha  
+def AnimacionCaminar(lista):
+    #Variables globales 
+    global indiced, px, py, size 
+    
+    personaje_0 = lista[indiced]
+    personaje = pygame.transform.scale(personaje_0, size)
+    indiced += 1
+    #Delay
+    #pygame.time.delay(20)
+    #Contador de imagenes
+    if indiced >= len (lista):
+        indiced = 0 
+    #Rellenamos el fondo
+    screen.blit(background, [0,0])
+    #Traemos el enemigo
+    F_Enemigo()
+    #Traemos el personaje
+    screen.blit(personaje, (px, py))
+     
+#Limitar Margen
+def LimitarJP():
+    global px, width
+    
+    if px < 0:
+        px = 0
+    if px > width-128:
+        px = width-128
+
+#Enemigo
+def F_Enemigo():
+    #Varibles globales del enemigo
+    global pxe, pye, esize, indicem
+    
+    enemigo_0 = enemigoa[indicem]
+    enemigo = pygame.transform.scale(enemigo_0, esize)
+    indicem += 1
+    #Contador de imagenes
+    if indicem >= len(enemigoa):
+        indicem = 0
+    screen.blit(enemigo, (pxe, pye))
+
+def M_Enemigo():
+    global pxe
+    pxe -= 5
+
+    if pxe < 0:
+        pxe = width    
+      
+# Bucle principal del juego
+while True:
+    clock.tick(20)
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()  #el programa llama a sys.exit() para asegurarse de que el juego se cierre adecuadamente y no queden procesos en ejecución en segundo plano.
+        if event.type == pygame.KEYDOWN:
+             if event.key == pygame.K_SPACE:
+                derecha = False
+                izquierda = False
+                angulo = 0.01
+
+    #Controles básicos   
+    
+    #Movimiento
+    if event.type == pygame.KEYDOWN:
+        if event.key == pygame.K_RIGHT: 
+            derecha = True
+            izquierda = False   
+            
+        if event.key == pygame.K_LEFT:
+            izquierda = True
+            derecha = False
+    
+    py = 300 - math.sin(angulo)*50       
+    
+    #Detener animaciones        
+    if event.type == pygame.KEYUP:
+        if event.key == pygame.K_RIGHT:
+            derecha= False
+        if event.key == pygame.K_LEFT:
+            izquierda = False    
+                      
+    
+    
+    # Vamos a mostrar el fondo
+    screen.blit(background, [0,0])
+    # mostrar enemigo
+    F_Enemigo()    
+    # mostrar personaje
+    screen.blit(personaje, [px, py])
+    
+    #Enemigo
+
+    M_Enemigo()
+    #Personaje
+ 
+    if derecha:
+        AnimacionCaminar(personaje_caminar_derecha)
+        px += 10
+    if izquierda:
+        AnimacionCaminar(personaje_caminar_izquierda)
+        px -= 10
+
+    LimitarJP()
+    
+    if angulo > 0: 
+        angulo = angulo + 0.2      
+    if angulo >= math.pi: 
+        angulo = 0.0
+        
+    rect_personaje.x = px
+    rect_personaje.y = py
+    rect_enemigo.x = pxe
+    rect_enemigo.y = pye
+    
+    if rect_personaje.colliderect(rect_enemigo): 
+        vida -= 1
+        pygame.time.delay(20)
+        pxe = random.randint(0,width-128)
+    
+    if vida <= 0:
+        screen.blit(gameover, (0,0))
+        pygame.display.update()
+        pygame.time.delay(6000)
+        pygame.quit()
+        break
+        
+    # Actualizar la pantalla
+    pygame.display.update()

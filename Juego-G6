@@ -1,0 +1,352 @@
+import pygame, sys, math, random
+
+
+# Inicialización de Pygame
+pygame.init()
+
+# Dimensiones de la ventana
+width = 800
+height = 600
+
+# Variables que vamos a utilizar en el juego
+contador = 0
+clock = pygame.time.Clock()
+FPS = 30
+
+#Caminar indices animacion 
+indiced = 0
+indicei = 0
+indice_muerte = 0
+
+#Indice para animaciones del enemigo 
+indicem = 0
+
+#Relacion al personaje
+px = 400
+py = 300
+angulo = 0.0
+size = (128,128)
+vida = 3
+puntos = 0
+
+#Relacionado a enemigo
+pxe = random.randint(0,100) 
+pye = 400
+esize = (52,50)
+
+#GameOver
+gameover = pygame.image.load("gameover.jpg")
+
+#Fuentes
+fuente = pygame.font.match_font("times")
+
+#Mostrar vidas
+def muestra_puntos(texto):
+    
+    tipo_letra = pygame.font.Font(fuente, 40)
+    superficie = tipo_letra.render(texto, True, (255,255,255))
+    rectangulo = superficie.get_rect()
+    screen.blit(superficie, rectangulo)
+
+#Mostrar  vidas
+def muestra_vidas(texto_vidas):
+    
+    tipo_letra = pygame.font.Font(fuente, 40)
+    superficie = tipo_letra.render(texto_vidas, True, (255,255,255))
+    screen.blit(superficie, (645, 0))
+
+#Flecha a la derecha
+flecha = pygame.image.load("Personaje\ATACK\Arrow_Derecha.png")
+disparando_derecha = False
+px_flecha_derecha = px+30
+py_flecha_derecha = py-200
+
+#Flecha a la izquierda
+flecha_2 = pygame.image.load("Personaje\ATACK\Arrow_Izquierda.png")
+disparando_izquierda = False
+px_flecha_izquierda = px+30
+py_flecha_izquierda = py-200
+
+# Creación de la ventana
+screen = pygame.display.set_mode((width, height))
+pygame.display.set_caption("The Magic Tensei") #Nombre de la ventana
+
+# Importar un fondo
+background = pygame.image.load("fondo.jpg")
+
+# Personaje
+personaje = pygame.image.load("Personaje\IDLE\quieto.png")
+
+personaje_caminar_derecha = [pygame.image.load("Personaje\WALK\walk_right\ile000.png"),
+        pygame.image.load("Personaje\WALK\walk_right\ile001.png"),
+        pygame.image.load("Personaje\WALK\walk_right\ile002.png"),
+        pygame.image.load("Personaje\WALK\walk_right\ile003.png"),
+        pygame.image.load("Personaje\WALK\walk_right\ile004.png"),
+        pygame.image.load("Personaje\WALK\walk_right\ile005.png"),
+        pygame.image.load("Personaje\WALK\walk_right\ile006.png"),
+        pygame.image.load("Personaje\WALK\walk_right\ile007.png"),]
+
+personaje_caminar_izquierda = [pygame.image.load("Personaje\WALK\walk_left\ile000.png"),
+        pygame.image.load("Personaje\WALK\walk_left\ile001.png"),
+        pygame.image.load("Personaje\WALK\walk_left\ile002.png"),
+        pygame.image.load("Personaje\WALK\walk_left\ile003.png"),
+        pygame.image.load("Personaje\WALK\walk_left\ile004.png"),
+        pygame.image.load("Personaje\WALK\walk_left\ile005.png"),
+        pygame.image.load("Personaje\WALK\walk_left\ile006.png"),
+        pygame.image.load("Personaje\WALK\walk_left\ile007.png"),]
+
+jump = [pygame.image.load("Personaje\JUMP\ile000.png"),
+        pygame.image.load("Personaje\JUMP\ile001.png"),
+        pygame.image.load("Personaje\JUMP\ile002.png"),
+        pygame.image.load("Personaje\JUMP\ile003.png"),
+        pygame.image.load("Personaje\JUMP\ile004.png"),
+        pygame.image.load("Personaje\JUMP\ile005.png"),
+        pygame.image.load("Personaje\JUMP\ile006.png"),
+        pygame.image.load("Personaje\JUMP\ile007.png"),
+        pygame.image.load("Personaje\JUMP\ile008.png"),
+        pygame.image.load("Personaje\JUMP\ile008.png"),]
+
+muerte = [pygame.image.load("Personaje\ATACK\Dead1.png"),
+          pygame.image.load("Personaje\ATACK\Dead2.png"),
+          pygame.image.load("Personaje\ATACK\Dead3.png")]
+
+# Enemigo 
+enemigo = pygame.image.load("Enemigo\enemigo.png")
+
+enemigoa = [pygame.image.load("Enemigo\enemigo1.png"),
+           pygame.image.load("Enemigo\enemigo2.png"),
+           pygame.image.load("Enemigo\enemigo3.png"),
+           pygame.image.load("Enemigo\enemigo4.png"),
+           pygame.image.load("Enemigo\enemigo5.png"),]
+
+#Obtener cuadrados para utilizar las colisiones
+rect_personaje = personaje.get_rect()
+rect_personaje = rect_personaje.inflate(-2/3,0)
+rect_enemigo = enemigo.get_rect()
+
+#Obtenemos colisiones del disparo
+rect_flecha = flecha.get_rect()
+rect_flecha_2 = flecha_2.get_rect()
+
+#Funciones para el movimiento
+quieto = True
+derecha = False
+izquierda = False
+# Auxmov lo vamos a utilizar para saber a donde esta mirando nuestro personaje
+auxmov = 0
+
+#Movimiento del personaje
+#Caminar a la derecha  
+def AnimacionCaminar(lista):
+    #Variables globales 
+    global indiced, px, py, size, px_flecha_derecha, px_flecha_izquierda
+    
+    personaje_0 = lista[indiced]
+    personaje = pygame.transform.scale(personaje_0, size)
+    indiced += 1
+    #Delay
+    #pygame.time.delay(20)
+    #Contador de imagenes
+    if indiced >= len (lista):
+        indiced = 0 
+    #Rellenamos el fondo
+    screen.blit(background, [0,0])
+    #Traemos el enemigo
+    F_Enemigo()
+    #Traemos el personaje
+    screen.blit(personaje, (px, py))
+    #Flecha
+    if disparando_derecha:
+        px_flecha_derecha += 5
+        screen.blit(flecha, [px_flecha_derecha, py_flecha_derecha])
+    #disparando izquierda
+    if disparando_izquierda:
+        px_flecha_izquierda -= 10
+        screen.blit(flecha_2, [px_flecha_izquierda, py_flecha_izquierda])
+
+def AnimacionMuerte():
+    #Variables globales 
+    global indice_muerte, px, py, size
+    
+    for indice_muerte in range(3): 
+        personaje_0 = muerte[indice_muerte]
+        personaje = pygame.transform.scale(personaje_0, size)
+        #Rellenamos el fondo
+        screen.blit(gameover, (0,0))
+        #Pintamos al personaje
+        screen.blit(personaje, (400, 300))
+        pygame.time.delay(250)
+        pygame.display.update()
+
+     
+#Limitar Margen
+def LimitarJP():
+    global px, width
+    
+    if px < 0:
+        px = width-128
+    if px > width-128:
+        px = 0
+
+#Enemigo
+def F_Enemigo():
+    #Varibles globales del enemigo
+    global pxe, pye, esize, indicem
+    
+    enemigo_0 = enemigoa[indicem]
+    enemigo = pygame.transform.scale(enemigo_0, esize)
+    indicem += 1
+    #Contador de imagenes
+    if indicem >= len(enemigoa):
+        indicem = 0
+    screen.blit(enemigo, (pxe, pye))
+
+def M_Enemigo():
+    global pxe
+    pxe -= 5
+
+    if pxe < 0:
+        pxe = width    
+    
+    
+    #if pxe > width:
+        #pxe = random.randint(0 , width)
+
+
+    
+
+      
+# Bucle principal del juego
+while True:
+    clock.tick(20)
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()  #el programa llama a sys.exit() para asegurarse de que el juego se cierre adecuadamente y no queden procesos en ejecución en segundo plano.
+        
+        #Controles de salto y ataques
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                derecha = False
+                izquierda = False
+                angulo = 0.01
+            if event.key == pygame.K_x:
+                px_flecha_derecha = px+30
+                py_flecha_derecha = py+80
+                disparando_derecha = True
+            if event.key == pygame.K_z:
+                px_flecha_izquierda = px-30
+                py_flecha_izquierda = py+80
+                disparando_izquierda = True
+
+    #Controles básicos   
+
+    #Movimiento
+    if event.type == pygame.KEYDOWN:
+        if event.key == pygame.K_RIGHT: 
+            derecha = True
+            izquierda = False   
+            
+        if event.key == pygame.K_LEFT:
+            izquierda = True
+            derecha = False
+    
+    #Salto
+    py = 300 - math.sin(angulo)*50       
+    
+    #Detener animaciones        
+    if event.type == pygame.KEYUP:
+        if event.key == pygame.K_RIGHT:
+            derecha= False
+        if event.key == pygame.K_LEFT:
+            izquierda = False    
+    
+    # Vamos a mostrar el fondo
+    screen.blit(background, [0,0])
+    # mostrar enemigo
+    F_Enemigo()    
+    # mostrar personaje
+    screen.blit(personaje, [px, py])
+    
+    #disparando_derecha
+    if disparando_derecha:
+        px_flecha_derecha += 10
+        screen.blit(flecha, [px_flecha_derecha, py_flecha_derecha])
+    if px_flecha_derecha > width:
+        py_flecha_derecha = py-200
+        disparando_derecha = False
+    
+    #disparando izquierda
+    if disparando_izquierda:
+        px_flecha_izquierda -= 10
+        screen.blit(flecha_2, [px_flecha_izquierda, py_flecha_izquierda])
+    if px_flecha_izquierda < 0:
+        py_flecha_izquierda = py-200
+        disparando_izquierda = False
+    
+    #Funcion movimiento del enemigo
+    M_Enemigo()
+    
+    #Animaciones del personaje
+    if derecha:
+        AnimacionCaminar(personaje_caminar_derecha)
+        px += 5
+    if izquierda:
+        AnimacionCaminar(personaje_caminar_izquierda)
+        px -= 5
+
+    LimitarJP()
+    
+    if angulo > 0: 
+        angulo = angulo + 0.2      
+    if angulo >= math.pi: 
+        angulo = 0.0
+    
+    
+    #Colision con el personaje
+    rect_personaje.x = px
+    rect_personaje.y = py
+    rect_enemigo.x = pxe
+    rect_enemigo.y = pye
+    
+    if rect_personaje.colliderect(rect_enemigo): 
+        vida -= 1
+        pygame.time.delay(20)
+        pxe = random.randint(0,width-128) 
+    
+    #Vida del personaje
+    if vida <= 0:
+        AnimacionMuerte()
+        pygame.time.delay(6000)
+        pygame.quit()
+        break
+    
+    #Colision de la flecha
+    rect_flecha.x = px_flecha_derecha
+    rect_flecha.y = py_flecha_derecha
+    
+    if rect_enemigo.colliderect(rect_flecha):
+        puntos += 1
+        disparando_derecha = False
+        pxe = random.randint(0,width-128) 
+        print(puntos)
+
+    rect_flecha_2.x = px_flecha_izquierda
+    rect_flecha_2.y = py_flecha_izquierda
+    
+    if rect_enemigo.colliderect(rect_flecha_2):
+        puntos += 1
+        disparando_izquierda = False
+        pxe = random.randint(0,width-128) 
+    
+    #Tableros de puntuación y de vidas
+    
+    texto = "Puntos: " + str(puntos)
+    muestra_puntos(texto)
+    
+    texto_vidas = "Vidas: " + str(vida)
+    muestra_vidas(texto_vidas)
+    
+    
+    # Actualizar la pantalla
+    pygame.display.update()
